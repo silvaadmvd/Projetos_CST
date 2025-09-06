@@ -1,0 +1,96 @@
+import tkinter as tk
+from tkinter import messagebox
+
+class ContaNubank:
+    def __init__(self, titular):
+        self.titular = titular
+        self.saldo = 0.0
+        self.historico = []
+
+    def depositar(self, valor):
+        if valor > 0:
+            self.saldo += valor
+            self.historico.append(f"Depósito: R$ {valor:.2f}")
+            return True
+        return False
+
+    def sacar(self, valor):
+        if 0 < valor <= self.saldo:
+            self.saldo -= valor
+            self.historico.append(f"Saque: R$ {valor:.2f}")
+            return True
+        return False
+
+    def extrato(self):
+        if not self.historico:
+            return "Nenhuma movimentação até o momento."
+        return "\n".join(self.historico)
+
+
+# ----- Interface Gráfica -----
+class AppNubank:
+    def __init__(self, root, conta):
+        self.conta = conta
+        self.root = root
+        self.root.title("Mini Nubank 💜")
+        self.root.geometry("350x400")
+        self.root.resizable(False, False)
+
+        self.lbl_titulo = tk.Label(root, text=f"Nubank - {conta.titular}", font=("Arial", 16, "bold"), fg="#8a05be")
+        self.lbl_titulo.pack(pady=10)
+
+        self.lbl_saldo = tk.Label(root, text=f"Saldo: R$ {self.conta.saldo:.2f}", font=("Arial", 14))
+        self.lbl_saldo.pack(pady=10)
+
+        # Campo de valor
+        self.entry_valor = tk.Entry(root, font=("Arial", 12))
+        self.entry_valor.pack(pady=5)
+
+        # Botões
+        self.btn_depositar = tk.Button(root, text="Depositar", bg="#8a05be", fg="white", font=("Arial", 12), command=self.depositar)
+        self.btn_depositar.pack(pady=5, fill="x")
+
+        self.btn_sacar = tk.Button(root, text="Sacar", bg="#d32f2f", fg="white", font=("Arial", 12), command=self.sacar)
+        self.btn_sacar.pack(pady=5, fill="x")
+
+        self.btn_extrato = tk.Button(root, text="Extrato", bg="#1976d2", fg="white", font=("Arial", 12), command=self.mostrar_extrato)
+        self.btn_extrato.pack(pady=5, fill="x")
+
+    def atualizar_saldo(self):
+        self.lbl_saldo.config(text=f"Saldo: R$ {self.conta.saldo:.2f}")
+
+    def depositar(self):
+        try:
+            valor = float(self.entry_valor.get())
+            if self.conta.depositar(valor):
+                messagebox.showinfo("Sucesso", f"Depósito de R$ {valor:.2f} realizado!")
+                self.atualizar_saldo()
+            else:
+                messagebox.showwarning("Erro", "Valor inválido para depósito.")
+        except ValueError:
+            messagebox.showerror("Erro", "Digite um valor numérico válido.")
+        self.entry_valor.delete(0, tk.END)
+
+    def sacar(self):
+        try:
+            valor = float(self.entry_valor.get())
+            if self.conta.sacar(valor):
+                messagebox.showinfo("Sucesso", f"Saque de R$ {valor:.2f} realizado!")
+                self.atualizar_saldo()
+            else:
+                messagebox.showwarning("Erro", "Saldo insuficiente ou valor inválido.")
+        except ValueError:
+            messagebox.showerror("Erro", "Digite um valor numérico válido.")
+        self.entry_valor.delete(0, tk.END)
+
+    def mostrar_extrato(self):
+        extrato = self.conta.extrato()
+        messagebox.showinfo("Extrato", extrato)
+
+
+# Executar o App
+if __name__ == "__main__":
+    conta = ContaNubank("Gabriel")
+    root = tk.Tk()
+    app = AppNubank(root, conta)
+    root.mainloop()
